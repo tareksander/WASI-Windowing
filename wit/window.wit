@@ -1,0 +1,22 @@
+
+package wasi:windowing;
+
+
+
+/// Defines the window resource, a handle to a window.
+interface window {
+    /// A handle to a window.
+    resource window {
+        /// Creates a new window, invisible and of implementation-defined size at an implementation-defined location.
+        constructor();
+        
+        // TODO Add methods to set window parameters and flags.
+        // Decide if the methods should return Option<> or false if they aren't supported on the platform, or if the
+        // capabilities should be queryable and the methods are no-ops or return None.
+        
+        
+        /// Sets the visibility of the window.
+        set-visible: func(visible: bool);
+    }
+}
+

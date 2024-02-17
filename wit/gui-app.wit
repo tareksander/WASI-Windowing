@@ -1,0 +1,13 @@
+
+package wasi:windowing;
+
+
+/// An application using wasi:windowing has to comply with this world specification.
+/// 
+world gui-app {
+    use event.{event, event-handler};
+    
+    
+    export event-handler;
+}
+

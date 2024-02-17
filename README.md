@@ -1,27 +1,14 @@
-# [Example WASI proposal]
-
-This template can be used to start a new proposal, which can then be proposed in the WASI Subgroup meetings.
-
-The sections below are recommended. However, every proposal is different, and the community can help you flesh out the proposal, so don't block on having something filled in for each one of them.
-
-Thank you to the W3C Privacy CG for the [inspiration](https://github.com/privacycg/template)!
-
-# [Title]
+# WASI Windowing
 
 A proposed [WebAssembly System Interface](https://github.com/WebAssembly/WASI) API.
 
 ### Current Phase
 
-[Fill in the current phase, e.g. Phase 1]
+WASI Windowing is in Phase 0.
 
 ### Champions
 
-<!---
-Please limit to one champion per company or organization
--->
-- [Champion 1]
-- [Champion 2]
-- [etc.]
+
 
 ### Portability Criteria
 
@@ -46,11 +33,11 @@ TODO before entering Phase 2.
 
 ### Introduction
 
-[The "executive summary" or "abstract". Explain in a few sentences what the goals of the project are, and a brief overview of how the solution works. This should be no more than 1-2 paragraphs.]
+For the WASI WebGPU proposal, a way to create windows is needed. This proposal specifies the interaction with the window system and exposes the ability to create windows and receive input from them.
 
 ### Goals [or Motivating Use Cases, or Scenarios]
 
-[What is the end-user need which this project aims to address?]
+Provide a windows system interface for WASI applications, with support for drawing to the windows using WASI WebGPU.
 
 ### Non-goals
 
