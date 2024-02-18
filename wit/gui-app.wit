@@ -1,13 +1,27 @@
 
 package wasi:windowing;
 
+interface event-handler {
+    use event.{event};
+    use window.{window-id};
+    event-handler: func(window-id: window-id, event: event);
+}
+
 
 /// An application using wasi:windowing has to comply with this world specification.
-/// 
 world gui-app {
-    use event.{event, event-handler};
     
     
+    use event.{event};
+    use window.{window-id};
+    import window;
+    
+    /// The application must implement this handler function that handles events on all windows it creates.
     export event-handler;
 }
 
+world gui-app-c {
+    include wasi:cli/command@0.2.0;
+    
+    include gui-app;
+}

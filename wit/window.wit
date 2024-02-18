@@ -18,5 +18,7 @@ interface window {
         /// Sets the visibility of the window.
         set-visible: func(visible: bool);
     }
+    
+    type window-id = u64;
 }
 

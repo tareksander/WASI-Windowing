@@ -1,0 +1,22 @@
+[package]
+name = "example1"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.component]
+package = "component:example1"
+
+[package.metadata.component.target.dependencies]
+"wasi:windowing" = { "path" = "../../wit" }
+"wasi:cli" = { "path" = "../../wit/deps/cli" }
+"wasi:io" = { "path" = "../../wit/deps/io" }
+"wasi:clocks" = { "path" = "../../wit/deps/clocks" }
+"wasi:random" = { "path" = "../../wit/deps/random" }
+"wasi:sockets" = { "path" = "../../wit/deps/sockets" }
+"wasi:filesystem" = { "path" = "../../wit/deps/filesystem" }
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wit-bindgen = { version = "0.18.0", default-features = false, features = ["realloc"] }

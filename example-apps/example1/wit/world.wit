@@ -1,0 +1,5 @@
+package component:example1;
+
+world example {
+    include wasi:windowing/gui-app;
+}

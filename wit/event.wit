@@ -6,18 +6,25 @@ package wasi:windowing;
 interface event {
     
     
-    enum mouse-button {
+    record cursor {
+        x: u16,
+        y: u16,
+        buttons: mouse-buttons,
+    }
+    
+    
+    flags mouse-buttons {
         left,
         middle,
         right,
     }
     
-    use window.window;
+    use window.{window};
     
     /// Describes the possible events regarding a window.
     variant event {
         /// The user requested to close a window.
-        close(),
+        close,
         /// The user pressed a key that has a defined Unicode code point while a window was focused.
         // TODO Are there keys without defined Unicode values? E.g. media buttons, F-keys? Compile a list of them and create the special-key enum and event.
         // TODO Should repeat down events be emitted or should the application handle repeats itself if needed.
@@ -26,18 +33,15 @@ interface event {
         key-up(u32),
         // TODO Should there be touch support? Or should implementations convert a tap to a click and a swipe to a move?
         /// Mouse click has occurred in a window.
-        click-down(button(mouse-button), x(u16), y(u16))
-        click-up(button(mouse-button), x(u16), y(u16))
+        click-down(cursor),
+        click-up(cursor),
         /// The cursor was moved inside a window.
-        move(x(u16), y(u16))
+        move(cursor),
         
         // TODO Represent scroll events
         
         
     }
-    
-    /// The application must implement this handler function that handles events on all windows it creates.
-    event-handler: func(window: window, event: event);
     
     
 }
