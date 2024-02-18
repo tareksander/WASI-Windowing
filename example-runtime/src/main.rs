@@ -9,6 +9,8 @@ use winit::{dpi::{LogicalPosition, LogicalSize}, event::{DeviceEvent, WindowEven
 
 use winit;
 
+pub type ArcWindow = Arc<winit::window::Window>;
+
 bindgen!({
     path: "../wit/",
     world: "gui-app-c",
@@ -45,7 +47,7 @@ bindgen!({
         "wasi:random/random": preview2::bindings::random::random,
         "wasi:random/insecure": preview2::bindings::random::insecure,
         "wasi:random/insecure-seed": preview2::bindings::random::insecure_seed,
-        "wasi:windowing/window/window": winit::window::Window,
+        "wasi:windowing/window/window": ArcWindow,
     }
 });
 
@@ -87,11 +89,10 @@ impl WasiView for WindowingState {
 
 impl HostWindow for WindowingState {
     #[doc = " Creates a new window, invisible and of implementation-defined size at an implementation-defined location."]
-    fn new(&mut self) -> wasmtime::Result<wasmtime::component::Resource<Window>> {
+    fn new(&mut self) -> wasmtime::Result<wasmtime::component::Resource<ArcWindow>> {
         self.window_request.send(()).unwrap();
         let w = self.window_channel.recv().unwrap();
-        let id = w.id();
-        if let Ok(r) = self.table.push(w) {
+        if let Ok(r) = self.table.push(Arc::new(w)) {
             return Ok(r);
         } else {
             return Err(wasmtime::Error::msg("Could not create new WASI resource"));
@@ -102,8 +103,8 @@ impl HostWindow for WindowingState {
     #[doc = " Decide if the methods should return Option<> or false if they aren\\'t supported on the platform, or if the"]
     #[doc = " capabilities should be queryable and the methods are no-ops or return None."]
     #[doc = " Sets the visibility of the window."]
-    fn set_visible(&mut self, self_:wasmtime::component::Resource<Window>, visible:bool,) -> wasmtime::Result<()> {
-        if let Ok(w) = self.table.get::<winit::window::Window>(&self_) {
+    fn set_visible(&mut self, self_:wasmtime::component::Resource<ArcWindow>, visible:bool,) -> wasmtime::Result<()> {
+        if let Ok(w) = self.table.get::<ArcWindow>(&self_) {
             w.set_visible(visible);
             return Ok(());
         } else {
@@ -111,8 +112,8 @@ impl HostWindow for WindowingState {
         }
     }
 
-    fn drop(&mut self, rep:wasmtime::component::Resource<Window>) -> wasmtime::Result<()> {
-        if let Ok(_) = self.table.delete::<winit::window::Window>(rep) {
+    fn drop(&mut self, rep:wasmtime::component::Resource<ArcWindow>) -> wasmtime::Result<()> {
+        if let Ok(_) = self.table.delete::<ArcWindow>(rep) {
             Ok(())
         } else {
             Err(wasmtime::Error::msg("Invalid window handle to drop"))
