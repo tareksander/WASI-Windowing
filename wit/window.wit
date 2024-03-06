@@ -5,15 +5,44 @@ package wasi:windowing;
 
 /// Defines the window resource, a handle to a window.
 interface window {
+    /// Window system capabilities that are supported.
+    /// Methods that use unsupported capabilities will trap in WASM.
+    flags capabilities {
+        /// The windows have a title that can be set.
+        title,
+        /// The windows have position on a display which can be moved by the program. Not given e.g. on the web, where position is handled by CSS.
+        position,
+        // The windows have icons which can be set by the program.
+        icon,
+        /// Windows can request to go into fullscreen mode.
+        fullscreen,
+    }
+    
+    
+    record position {
+        x: u16,
+        y: u16,
+    }
+    
+    record size {
+        width: u16,
+        height: u16,
+    }
+    
     /// A handle to a window.
     resource window {
         /// Creates a new window, invisible and of implementation-defined size at an implementation-defined location.
         constructor();
         
-        // TODO Add methods to set window parameters and flags.
-        // Decide if the methods should return Option<> or false if they aren't supported on the platform, or if the
-        // capabilities should be queryable and the methods are no-ops or return None.
+        set-title: func(title: string);
+        get-title: func() -> string;
         
+        // TODO add a display interface for querying the displays, so programs can see the resolution and find out where on which screen the window is.
+        set-position: func(position: position);
+        get-position: func() -> position;
+        
+        set-size: func(size: size);
+        get-size: func() -> size;
         
         /// Sets the visibility of the window.
         set-visible: func(visible: bool);

@@ -25,11 +25,7 @@ impl wasi::windowing::event_handler::Guest for Component {
         println!("Event received!");
         match event {
             bindings::wasi::windowing::event::Event::Close => exit(0),
-            bindings::wasi::windowing::event::Event::KeyDown(_) => todo!(),
-            bindings::wasi::windowing::event::Event::KeyUp(_) => todo!(),
-            bindings::wasi::windowing::event::Event::ClickDown(_) => todo!(),
-            bindings::wasi::windowing::event::Event::ClickUp(_) => todo!(),
-            bindings::wasi::windowing::event::Event::Move(_) => todo!(),
+            _ => {}
         }
     }
 }

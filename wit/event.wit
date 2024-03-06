@@ -4,14 +4,126 @@ package wasi:windowing;
 
 /// Defines the event type and the event-handler function type.
 interface event {
+    use window.{window, position, size};
     
     
-    record cursor {
-        x: u16,
-        y: u16,
-        buttons: mouse-buttons,
+    /// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
+    enum key-code {
+        // TODO is this needed? I don't think the MVP needs key codes.
+        unidentified,
     }
     
+    /// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values#document_keys
+    /// Excerpt of the most useful keys.
+    enum special-key {
+       alt,
+       alt-graph,
+       caps-lock,
+       ctrl,
+       meta,
+       num-lock,
+       scroll-lock,
+       shift,
+       
+       arrow-down,
+       arrow-left,
+       arrow-right,
+       arrow-up,
+       end,
+       home,
+       page-down,
+       page-up,
+       
+       backspace,
+       clear,
+       delete,
+       insert,
+       paste,
+       
+       context-menu,
+       escape,
+       pause,
+       
+       brightness-down,
+       brightness-up,
+       print,
+       
+       f1,
+       f2,
+       f3,
+       f4,
+       f5,
+       f6,
+       f7,
+       f8,
+       f9,
+       f10,
+       f11,
+       f12,
+       f13,
+       f14,
+       f15,
+       f16,
+       f17,
+       f18,
+       f19,
+       f20,
+       
+       app-switch,
+       
+       channel-down,
+       channel-up,
+       fast-forward,
+       media-pause,
+       media-play,
+       media-play-pause,
+       media-record,
+       media-rewind,
+       media-stop,
+       media-track-next,
+       media-track-previous,
+       
+       audio-volume-down,
+       audio-volume-up,
+       audio-volume-mute,
+    }
+    
+    flags modifiers {
+        ctrl,
+        alt,
+        alt-graph,
+        shift,
+        caps-lock,
+        meta,
+    }
+    
+    /// Describes the key location on the keyboard, for keys that appear more than once on a keyboard.
+    enum key-location {
+        standard,
+        left,
+        right,
+        numpad,
+    }
+    
+    variant key {
+        /// The key has an associated Unicode scalar value.
+        character(u32),
+        /// The key is a key without a Unicode scalar value.
+        special(special-key),
+        /// A dead key was pressed. The next key event will contain the combined character.
+        dead,
+        /// The key could not be identified.
+        unidentified,
+    }
+    
+    
+    record key-data {
+        modifiers: modifiers,
+        key: key,
+        code: key-code,
+        location: key-location,
+        repeat: bool
+    }
     
     flags mouse-buttons {
         left,
@@ -19,18 +131,30 @@ interface event {
         right,
     }
     
-    use window.{window};
+    record cursor {
+        position: position,
+        buttons: mouse-buttons,
+    }
+    
+    record scroll {
+        cursor: cursor,
+        x: f32,
+        y: f32,
+    }
     
     /// Describes the possible events regarding a window.
     variant event {
         /// The user requested to close a window.
         close,
-        /// The user pressed a key that has a defined Unicode code point while a window was focused.
-        // TODO Are there keys without defined Unicode values? E.g. media buttons, F-keys? Compile a list of them and create the special-key enum and event.
-        // TODO Should repeat down events be emitted or should the application handle repeats itself if needed.
-        // TODO Key modifiers.
-        key-down(u32),
-        key-up(u32),
+        /// A window was resized by the user.
+        resize(size),
+        // A window has been moved by the user.
+        move(position),
+        
+        
+        /// The user pressed a key while a window was focused.
+        key-down(key-data),
+        key-up(key-data),
         // TODO Should there be touch support? Or should implementations convert a tap to a click and a swipe to a move?
         /// Mouse click has occurred in a window.
         click-down(cursor),
@@ -38,7 +162,12 @@ interface event {
         /// The cursor was moved inside a window.
         move(cursor),
         
-        // TODO Represent scroll events
+        scroll(scroll),
+        
+        /// The scaling factor for density-dependent elements such as text changed or is signalled initially.
+        /// If this event is never delivered, the platform doesn't support getting this information, and the value
+        /// should be assumed to be 1.0.
+        high-dpi-scale(f32),
         
         
     }

@@ -1,11 +1,11 @@
-use std::{collections::HashMap, env::args, rc::Rc, sync::{mpsc, Arc}, time::{Duration, Instant}};
+use std::{env::args, sync::{mpsc, Arc}, time::{Duration, Instant}};
 
-use exports::wasi::windowing::event_handler::{Event, WindowId};
+use exports::wasi::windowing::event_handler::WindowId;
 use tokio::sync::Mutex;
-use wasi::windowing::window::HostWindow;
-use wasmtime::{component::{bindgen, Component, Linker, Lower, Resource, ResourceTable}, Config, Engine, Store};
-use wasmtime_wasi::{preview2::{self, bindings::cli::environment::Host, WasiCtx, WasiView}};
-use winit::{dpi::{LogicalPosition, LogicalSize}, event::{DeviceEvent, WindowEvent}, event_loop::{self, EventLoop, EventLoopBuilder}, window::{Window, WindowBuilder}};
+use wasi::windowing::{event::Position, window::{HostWindow, Size}};
+use wasmtime::{component::{bindgen, Component, Linker, ResourceTable}, Config, Engine, Store};
+use wasmtime_wasi::preview2::{self, WasiCtx, WasiView};
+use winit::{dpi::{LogicalPosition, LogicalSize}, event::WindowEvent, event_loop::{self, EventLoop}};
 
 use winit;
 
@@ -119,6 +119,30 @@ impl HostWindow for WindowingState {
             Err(wasmtime::Error::msg("Invalid window handle to drop"))
         }
     }
+    
+    fn set_title(&mut self,self_:wasmtime::component::Resource<ArcWindow>, title:String) -> wasmtime::Result<()>  {
+        todo!()
+    }
+    
+    fn get_title(&mut self,self_:wasmtime::component::Resource<ArcWindow>) -> wasmtime::Result<String>  {
+        todo!()
+    }
+    
+    fn set_position(&mut self,self_:wasmtime::component::Resource<ArcWindow>, position:Position) -> wasmtime::Result<()>  {
+        todo!()
+    }
+    
+    fn get_position(&mut self,self_:wasmtime::component::Resource<ArcWindow>) -> wasmtime::Result<Position>  {
+        todo!()
+    }
+    
+    fn set_size(&mut self,self_:wasmtime::component::Resource<ArcWindow>, size: Size) -> wasmtime::Result<()>  {
+        todo!()
+    }
+    
+    fn get_size(&mut self,self_:wasmtime::component::Resource<ArcWindow>) -> wasmtime::Result<Size>  {
+        todo!()
+    }
 }
 
 
@@ -224,10 +248,17 @@ fn main() {
                     WindowEvent::KeyboardInput { device_id, event, is_synthetic } => {
                         if ! event.repeat {
                             if let Some(text) = event.text {
-                                let code = text.chars().next().unwrap() as u32;
+                                let key = text.chars().next().unwrap() as u32;
+                                let key = wasi::windowing::event::KeyData {
+                                    modifiers: wasi::windowing::event::Modifiers::empty(),
+                                    key: wasi::windowing::event::Key::Character(key),
+                                    code: wasi::windowing::event::KeyCode::Unidentified,
+                                    location: wasi::windowing::event::KeyLocation::Standard,
+                                    repeat: false,
+                                };
                                 let e = match event.state {
-                                    winit::event::ElementState::Pressed => wasi::windowing::event::Event::KeyDown(code),
-                                    winit::event::ElementState::Released => wasi::windowing::event::Event::KeyUp(code),
+                                    winit::event::ElementState::Pressed => wasi::windowing::event::Event::KeyDown(key),
+                                    winit::event::ElementState::Released => wasi::windowing::event::Event::KeyUp(key),
                                 };
                                 rt.block_on(send_event(instance.clone(), store.clone(), window_id.into(), e));
                             }
