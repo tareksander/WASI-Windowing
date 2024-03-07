@@ -1,6 +1,6 @@
 use std::{env::args, sync::{mpsc, Arc}, time::{Duration, Instant}};
 
-use exports::wasi::windowing::event_handler::WindowId;
+use exports::wasi::windowing::window::WindowId;
 use tokio::sync::Mutex;
 use wasi::windowing::{event::Position, window::{HostWindow, Size}};
 use wasmtime::{component::{bindgen, Component, Linker, ResourceTable}, Config, Engine, Store};
@@ -13,43 +13,12 @@ pub type ArcWindow = Arc<winit::window::Window>;
 
 bindgen!({
     path: "../wit/",
-    world: "gui-app-c",
-    async: {
-        only_imports: [
-            "poll"
-        ]
-    },
+    world: "imports",
     with: {
-        "wasi:cli/exit": preview2::bindings::cli::exit,
-        "wasi:cli/environment": preview2::bindings::cli::environment,
-        "wasi:cli/stdin": preview2::bindings::cli::stdin,
-        "wasi:cli/stdout": preview2::bindings::cli::stdout,
-        "wasi:cli/stderr": preview2::bindings::cli::stderr,
-        "wasi:cli/terminal-input": preview2::bindings::cli::terminal_input,
-        "wasi:cli/terminal-output": preview2::bindings::cli::terminal_output,
-        "wasi:cli/terminal-stdin": preview2::bindings::cli::terminal_stdin,
-        "wasi:cli/terminal-stdout": preview2::bindings::cli::terminal_stdout,
-        "wasi:cli/terminal-stderr": preview2::bindings::cli::terminal_stderr,
-        "wasi:clocks/monotonic-clock": preview2::bindings::clocks::monotonic_clock,
-        "wasi:clocks/wall-clock": preview2::bindings::clocks::wall_clock,
-        "wasi:io/error": preview2::bindings::io::error,
-        "wasi:io/poll": preview2::bindings::io::poll,
-        "wasi:io/streams": preview2::bindings::io::streams,
-        "wasi:filesystem/types": preview2::bindings::filesystem::types,
-        "wasi:filesystem/preopens": preview2::bindings::filesystem::preopens,
-        "wasi:sockets/network": preview2::bindings::sockets::network,
-        "wasi:sockets/instance-network": preview2::bindings::sockets::instance_network,
-        "wasi:sockets/udp": preview2::bindings::sockets::udp,
-        "wasi:sockets/udp-create-socket": preview2::bindings::sockets::udp_create_socket,
-        "wasi:sockets/tcp": preview2::bindings::sockets::tcp,
-        "wasi:sockets/tcp-create-socket": preview2::bindings::sockets::tcp_create_socket,
-        "wasi:sockets/ip-name-lookup": preview2::bindings::sockets::ip_name_lookup,
-        "wasi:random/random": preview2::bindings::random::random,
-        "wasi:random/insecure": preview2::bindings::random::insecure,
-        "wasi:random/insecure-seed": preview2::bindings::random::insecure_seed,
         "wasi:windowing/window/window": ArcWindow,
     }
 });
+
 
 
 struct WindowingState {
@@ -147,15 +116,6 @@ impl HostWindow for WindowingState {
 
 
 
-async fn run(inst: Arc<GuiAppC>, store: Arc<Mutex<Store<WindowingState>>>) {
-    let mut s = store.lock().await;
-    inst.wasi_cli_run().call_run(&mut*s).await.unwrap().unwrap();
-}
-
-async fn send_event(inst: Arc<GuiAppC>, store: Arc<Mutex<Store<WindowingState>>>, id: WindowId, event: Event) {
-    let mut s = store.lock().await;
-    inst.wasi_windowing_event_handler().call_event_handler(&mut* s, id as u64, event).await.unwrap();
-}
 
 
 fn main() {
@@ -179,34 +139,34 @@ fn main() {
     });
     
     
-    
-    preview2::bindings::cli::exit::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::environment::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::stdin::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::stdout::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::stderr::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::terminal_input::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::terminal_output::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::terminal_stdin::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::terminal_stdout::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::cli::terminal_stderr::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::clocks::monotonic_clock::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::clocks::wall_clock::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::io::error::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::io::poll::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::io::streams::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::filesystem::types::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::filesystem::preopens::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::network::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::instance_network::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::udp::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::udp_create_socket::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::tcp::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::tcp_create_socket::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::sockets::ip_name_lookup::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::random::random::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::random::insecure::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
-    preview2::bindings::random::insecure_seed::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    preview2::bindings::Imports::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::exit::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::environment::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::stdin::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::stdout::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::stderr::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::terminal_input::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::terminal_output::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::terminal_stdin::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::terminal_stdout::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::cli::terminal_stderr::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::clocks::monotonic_clock::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::clocks::wall_clock::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::io::error::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::io::poll::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::io::streams::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::filesystem::types::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::filesystem::preopens::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::network::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::instance_network::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::udp::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::udp_create_socket::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::tcp::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::tcp_create_socket::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::sockets::ip_name_lookup::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::random::random::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::random::insecure::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
+    // preview2::bindings::random::insecure_seed::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
     
     wasi::windowing::window::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
     wasi::windowing::event::add_to_linker(&mut linker, |state: &mut WindowingState| state).unwrap();
@@ -214,7 +174,7 @@ fn main() {
     let event_loop = EventLoop::new().unwrap();
     let args: Vec<String> = args().collect();
     let component = Component::from_file(&engine, format!("../example-apps/{}/target/wasm32-wasi/release/{}.wasm", args[1], args[1])).unwrap();
-    let (instance, _) = rt.block_on(GuiAppC::instantiate_async(&mut store, &component, &linker)).unwrap();
+    let (instance, _) = rt.block_on(preview2::command::Command::instantiate_async(&mut store, &component, &linker)).unwrap();
     let instance = Arc::new(instance);
     let store = Arc::new(Mutex::new(store));
     
@@ -243,7 +203,7 @@ fn main() {
                     WindowEvent::CloseRequested => {
                         //instance.wasi_windowing_event_handler().call_event_handler(&mut store, window_id.into(), wasi::windowing::event::Event::Close);
                         //rt.block_on(instance.wasi_windowing_event_handler().call_event_handler(&mut store, window_id.into(), wasi::windowing::event::Event::Close)).unwrap();
-                        rt.block_on(send_event(instance.clone(), store.clone(), window_id.into(), Event::Close));
+                        //rt.block_on(send_event(instance.clone(), store.clone(), window_id.into(), Event::Close));
                     },
                     WindowEvent::KeyboardInput { device_id, event, is_synthetic } => {
                         if ! event.repeat {
@@ -260,7 +220,7 @@ fn main() {
                                     winit::event::ElementState::Pressed => wasi::windowing::event::Event::KeyDown(key),
                                     winit::event::ElementState::Released => wasi::windowing::event::Event::KeyUp(key),
                                 };
-                                rt.block_on(send_event(instance.clone(), store.clone(), window_id.into(), e));
+                                //rt.block_on(send_event(instance.clone(), store.clone(), window_id.into(), e));
                             }
                         }
                     }
